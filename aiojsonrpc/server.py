@@ -1,6 +1,6 @@
 from .router import Router
 from .request import RequestFactory
-from .response import Response, ErrorResponse
+from .response import Response, ErrorResponse, BatchResponse
 from .exceptions import MethodNotFound, InvalidRequest, ParserError
 
 class Server():
@@ -34,5 +34,8 @@ class Server():
             
             results.append(result)
         
+        if request.is_batch:
+            return BatchResponse(request,results)
+            
         return Response(request,results)
           

@@ -71,3 +71,38 @@ class ErrorResponse(Response):
             return ''
 
         return json.dumps(self.get_raw())
+
+
+
+class BatchResponse():
+    version = '2.0'
+    def __init__(self, request, result):
+        self.request = request
+        self.result = result
+
+        self.is_notification = False
+        if not request.is_batch:
+            self.is_notification = request.is_notification()
+
+    def get_raw(self):
+        responses = []
+        for req, res in zip(self.request, self.result):
+            if isinstance(res, Response):
+                raw_response = res.get_raw()
+                if raw_response is None:
+                    continue
+
+                responses.append(raw_response)
+                continue
+
+            responses.append(Response(req, [res]).get_raw())
+
+        return responses
+
+    def __str__(self):
+        raw_response = self.get_raw()
+            
+        if not raw_response:
+            return ''
+
+        return json.dumps(raw_response)
