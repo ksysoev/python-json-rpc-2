@@ -204,10 +204,10 @@ class CallBatchRPC(unittest.TestCase):
                                       '{"jsonrpc": "2.0", "method": "get_data", "id": "9"}]')
 
         assert json.loads(str(result)) == json.loads('[{"jsonrpc": "2.0", "result": 7, "id": "1"},'
-                          '{"jsonrpc": "2.0", "result": 19, "id": "2"},'
-                          '{"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"}, "id": null},'
-                          '{"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": "5"},'
-                          '{"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"}]')
+                                                     '{"jsonrpc": "2.0", "result": 19, "id": "2"},'
+                                                     '{"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"}, "id": null},'
+                                                     '{"jsonrpc": "2.0", "error": {"code": -32601, "message": "Method not found"}, "id": "5"},'
+                                                     '{"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"}]')
 
     
     def test_all_notifications(self):

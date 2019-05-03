@@ -16,11 +16,11 @@ class Response():
         if self.is_notification:
             return None
 
-        if isinstance(self.result[0], Response):
-            return self.result[0].get_raw()
+        if isinstance(self.result, Response):
+            return self.result.get_raw()
 
         return {'jsonrpc': self.version,
-                'result': self.result[0],
+                'result': self.result,
                 'id': self.request.id}
 
     def __str__(self):
@@ -86,7 +86,7 @@ class BatchResponse():
 
     def get_raw(self):
         responses = []
-        for req, res in zip(self.request, self.result):
+        for req, res in zip(self.request.requests, self.result):
             if isinstance(res, Response):
                 raw_response = res.get_raw()
                 if raw_response is None:
@@ -95,7 +95,7 @@ class BatchResponse():
                 responses.append(raw_response)
                 continue
 
-            responses.append(Response(req, [res]).get_raw())
+            responses.append(Response(req, res).get_raw())
 
         return responses
 

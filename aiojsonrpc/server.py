@@ -19,23 +19,5 @@ class Server():
         except (InvalidRequest, ParserError) as error:
             return ErrorResponse(error)
 
-        results = []
-        for single_request in request:
-            if isinstance(single_request, Response):
-                results.append(single_request)
-                continue
-
-            try:
-                method = self.router.dispatch(single_request)
-                args, kwargs = single_request.get_params()
-                result = method(*args, **kwargs)
-            except MethodNotFound as error:
-                result = ErrorResponse(error, single_request)
-            
-            results.append(result)
-        
-        if request.is_batch:
-            return BatchResponse(request,results)
-            
-        return Response(request,results)
+        return request.proccess(self.router)
           

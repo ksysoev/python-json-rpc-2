@@ -1,10 +1,6 @@
 class BaseJSONRPCException(Exception):
     pass
 
-
-class MethodNotFound(BaseJSONRPCException):
-    pass
-
 class MethodNotFound(BaseJSONRPCException):
     code = -32601
     message = 'Method not found'

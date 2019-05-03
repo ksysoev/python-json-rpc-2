@@ -1,6 +1,6 @@
 import json
-from .exceptions import InvalidRequest, ParserError
-from .response import ErrorResponse
+from .exceptions import InvalidRequest, ParserError, MethodNotFound
+from .response import Response, ErrorResponse, BatchResponse
 
 
 
@@ -57,17 +57,18 @@ class Reuest(ReuestBase):
 
         return [], self.params
 
-    def proccess(self):
-        pass
+    def proccess(self, router):
+        try:
+            method = router.dispatch(self)
+            args, kwargs = self.get_params()
+            result = method(*args, **kwargs)
+        except MethodNotFound as error:
+            return ErrorResponse(error, self)
 
-    def is_processed(self):
-        pass
+        return Response(self, result)
 
     def is_notification(self):
         return True if self.id is None else False
-
-    def __iter__(self):
-        return iter([self])
 
 
 class BatchReuest(ReuestBase):
@@ -91,15 +92,22 @@ class BatchReuest(ReuestBase):
 
             self.requests.append(request)
 
-    def proccess(self, callback):
+    def proccess(self, router):
         results = []
-        for request in self.requests:
-            results.append(request.proccess(callback))
+        for single_request in self.requests:
+            if isinstance(single_request, Response):
+                results.append(single_request)
+                continue
 
-        return results
-
-    def __iter__(self):
-        return iter(self.requests)
+            try:
+                method = router.dispatch(single_request)
+                args, kwargs = single_request.get_params()
+                result = method(*args, **kwargs)
+            except MethodNotFound as error:
+                result = ErrorResponse(error, single_request)
+            
+            results.append(result)
         
+        return BatchResponse(self, results)
 
         
