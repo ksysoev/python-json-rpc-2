@@ -24,24 +24,6 @@ class Response():
                 'id': self.request.id}
 
     def __str__(self):
-        if self.request.is_batch:
-            responses = []
-            for req, res in zip(self.request, self.result):
-                if isinstance(res, Response):
-                    raw_response = res.get_raw()
-                    if raw_response is None:
-                        continue
-
-                    responses.append(raw_response)
-                    continue
-
-                responses.append(Response(req, [res]).get_raw())
-
-            if not responses:
-                return ''
-
-            return json.dumps(responses)
-
         if self.request.id is None:
             return ''
 

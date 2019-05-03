@@ -93,21 +93,16 @@ class BatchReuest(ReuestBase):
             self.requests.append(request)
 
     def proccess(self, router):
-        results = []
-        for single_request in self.requests:
-            if isinstance(single_request, Response):
-                results.append(single_request)
+        responses = []
+        for request in self.requests:
+            if isinstance(request, Response):
+                responses.append(request)
                 continue
 
-            try:
-                method = router.dispatch(single_request)
-                args, kwargs = single_request.get_params()
-                result = method(*args, **kwargs)
-            except MethodNotFound as error:
-                result = ErrorResponse(error, single_request)
+            response = request.proccess(router)
             
-            results.append(result)
+            responses.append(response)
         
-        return BatchResponse(self, results)
+        return BatchResponse(self, responses)
 
         
