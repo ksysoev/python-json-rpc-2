@@ -5,5 +5,5 @@
 __version__ = "0.1"
 
 
-from .server import Server 
+from .server import Server
 from .exceptions import *

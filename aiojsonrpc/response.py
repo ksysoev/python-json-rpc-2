@@ -1,21 +1,5 @@
 import json
 
-# class ResponseFactory():
-#     @classmethod
-#     def make_request(cls, request, resonse_data):
-#         try:
-#             data = json.loads(raw_json)
-#         except TypeError, json.decoder.JSONDecodeError:
-#             raise ParserError('Invalid request format')
-
-#         if isinstance(data, list):
-#             return BatchReuest(data, ctx)
-#         elif isinstance(data, dict):
-#             return Reuest(data, ctx)
-        
-#         raise InvalidRequest('Invalid request format')
-
-
 class Response():
     version = '2.0'
     def __init__(self, request, result):
@@ -39,7 +23,6 @@ class Response():
                 'result': self.result[0],
                 'id': self.request.id}
 
-    
     def __str__(self):
         if self.request.is_batch:
             responses = []
@@ -48,7 +31,7 @@ class Response():
                     raw_response = res.get_raw()
                     if raw_response is None:
                         continue
-                    
+
                     responses.append(raw_response)
                     continue
 
@@ -79,8 +62,8 @@ class ErrorResponse(Response):
             return None
 
         return {'jsonrpc': self.version,
-               'error': self.error.get_data(),
-               'id': self.id}
+                'error': self.error.get_data(),
+                'id': self.id}
 
 
     def __str__(self):
@@ -88,6 +71,3 @@ class ErrorResponse(Response):
             return ''
 
         return json.dumps(self.get_raw())
-
-        
-        
