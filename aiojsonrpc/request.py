@@ -1,6 +1,7 @@
 import json
-from .exceptions import InvalidRequest, ParserError, MethodNotFound
+from .exceptions import InvalidRequest, ParserError, MethodNotFound, InvalidParams, InternalError, BaseRPCError
 from .response import Response, ErrorResponse, BatchResponse
+from funcsigs import signature
 
 
 
@@ -60,10 +61,22 @@ class Reuest(ReuestBase):
     def proccess(self, router):
         try:
             method = router.dispatch(self)
-            args, kwargs = self.get_params()
-            result = method(*args, **kwargs)
         except MethodNotFound as error:
             return ErrorResponse(error, self)
+
+        args, kwargs = self.get_params()
+        
+        try:
+            signature(method).bind(*args, **kwargs)
+        except TypeError as error:
+            return ErrorResponse(InvalidParams(error), self)
+
+        try:
+            result = method(*args, **kwargs)
+        except BaseRPCError as error:
+            return ErrorResponse(error, self)
+        except Exception as error:
+            return ErrorResponse(InternalError(error), self)
 
         return Response(self, result)
 
@@ -104,5 +117,3 @@ class BatchReuest(ReuestBase):
             responses.append(response)
         
         return BatchResponse(self, responses)
-
-        
