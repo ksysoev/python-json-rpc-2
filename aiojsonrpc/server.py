@@ -1,6 +1,6 @@
 from .router import Router
 from .request import RequestFactory
-from .response import Response, ErrorResponse, BatchResponse
+from .response import ErrorResponse
 from .exceptions import MethodNotFound, InvalidRequest, ParserError
 
 class Server():

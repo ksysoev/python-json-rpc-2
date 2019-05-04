@@ -1,22 +1,17 @@
 import json
 
-class Response():
+
+class BaseResponse():
     version = '2.0'
+
+class Response(BaseResponse):
+
     def __init__(self, request, result):
         self.request = request
         self.result = result
 
-        self.is_notification = False
-        if not request.is_batch:
-            self.is_notification = request.is_notification()
-
     def get_raw(self):
-        assert not self.request.is_batch
-
-        if self.is_notification:
-            return None
-
-        if isinstance(self.result, Response):
+        if isinstance(self.result, BaseResponse):
             return self.result.get_raw()
 
         return {'jsonrpc': self.version,
@@ -29,47 +24,43 @@ class Response():
 
         return json.dumps(self.get_raw())
 
-class ErrorResponse(Response):
+class EmptyResponse(BaseResponse):
+
+    def get_raw(self):
+        return None
+
+    def __str__(self):
+       return ''
+
+class ErrorResponse(BaseResponse):
     def __init__(self, error, request=None):
         self.id = None
-        self.is_notification = None
         self.error = error
 
         if request:
             self.id = request.id
-            self.is_notification = request.is_notification()
 
     def get_raw(self):
-        if self.is_notification:
-            return None
-
         return {'jsonrpc': self.version,
                 'error': self.error.get_data(),
                 'id': self.id}
 
 
     def __str__(self):
-        if self.is_notification:
-            return ''
-
         return json.dumps(self.get_raw())
 
 
 
-class BatchResponse():
-    version = '2.0'
+class BatchResponse(BaseResponse):
+    
     def __init__(self, request, result):
         self.request = request
         self.result = result
 
-        self.is_notification = False
-        if not request.is_batch:
-            self.is_notification = request.is_notification()
-
     def get_raw(self):
         responses = []
         for req, res in zip(self.request.requests, self.result):
-            if isinstance(res, Response):
+            if isinstance(res, BaseResponse):
                 raw_response = res.get_raw()
                 if raw_response is None:
                     continue

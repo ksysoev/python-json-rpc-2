@@ -1,6 +1,6 @@
 import json
 from .exceptions import InvalidRequest, ParserError, MethodNotFound, InvalidParams, InternalError, BaseRPCError
-from .response import Response, ErrorResponse, BatchResponse
+from .response import Response, BaseResponse, ErrorResponse, BatchResponse, EmptyResponse
 from funcsigs import signature
 
 
@@ -15,14 +15,23 @@ class RequestFactory():
 
         if isinstance(data, list):
             return BatchReuest(data)
-        elif isinstance(data, dict):
-            return Reuest(data)
         
-        raise InvalidRequest('Invalid request format')
+        return cls.make_single_request(data)
+    
+    @classmethod
+    def make_single_request(cls, data: dict):
         
+        if not isinstance(data, dict):
+           raise InvalidRequest('Invalid request format') 
+
+        request_id = data.get('id', None)
+
+        if request_id is None:
+            return NotificationRequest(data)
+
+        return Reuest(data)
 
         
-
 
 class ReuestBase():
 
@@ -30,8 +39,6 @@ class ReuestBase():
         pass
 
 class Reuest(ReuestBase):
-
-    is_batch = False
 
     def __init__(self, request_data, *args, **kwargs):
         
@@ -80,26 +87,29 @@ class Reuest(ReuestBase):
 
         return Response(self, result)
 
-    def is_notification(self):
-        return True if self.id is None else False
+
+class NotificationRequest(Reuest):
+    def proccess(self, router):
+        super().proccess(router)
+
+        return EmptyResponse()
 
 
 class BatchReuest(ReuestBase):
-    is_batch = True
-
-    def __init__(self, request_data, *args, **kwargs):
+    
+    def __init__(self, requests_data, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if not isinstance(request_data, list):
+        if not isinstance(requests_data, list):
             raise InvalidRequest('Invalid request format')
 
-        if len(request_data) == 0:
+        if len(requests_data) == 0:
             raise InvalidRequest('Invalid request format')
 
         self.requests = []
-        for request in request_data:
+        for request_data in requests_data:
             try:
-                request = Reuest(request)
+                request = RequestFactory.make_single_request(request_data)
             except (InvalidRequest, ParserError) as error:
                 request = ErrorResponse(error)
 
@@ -108,7 +118,7 @@ class BatchReuest(ReuestBase):
     def proccess(self, router):
         responses = []
         for request in self.requests:
-            if isinstance(request, Response):
+            if isinstance(request, BaseResponse):
                 responses.append(request)
                 continue
 
