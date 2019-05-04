@@ -5,10 +5,18 @@ Package contains classes which represents different classes for requests
 
 import json
 from abc import ABCMeta
+import os.path
+from jsonschema import validate, ValidationError
 from funcsigs import signature
 from .exceptions import (InvalidRequest, ParserError, MethodNotFound,
                          InvalidParams, InternalError, BaseRPCError)
 from .response import Response, BaseResponse, ErrorResponse, BatchResponse, EmptyResponse
+
+
+module_path = os.path.abspath(os.path.dirname(__file__))
+path = os.path.join(module_path, "./schemas/jsonrpc-request-2.0.json")
+with open(path) as json_shema_fh:
+    JSON_SHEMA = json.loads(json_shema_fh.read())
 
 
 class RequestFactory():
@@ -21,7 +29,7 @@ class RequestFactory():
         try:
             data = json.loads(raw_json)
         except (TypeError, json.decoder.JSONDecodeError):
-            raise ParserError('Invalid request format')
+            raise ParserError()
 
         if isinstance(data, list):
             return BatchReuest(data)
@@ -34,6 +42,11 @@ class RequestFactory():
 
         if not isinstance(data, dict):
             raise InvalidRequest('Invalid request format')
+
+        try:
+            validate(data, JSON_SHEMA)
+        except ValidationError:
+            raise InvalidRequest()
 
         request_id = data.get('id', None)
 
